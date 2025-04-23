@@ -1,52 +1,280 @@
-# Prerequisites
-*.d
+namespace TicTacToe
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+{
 
-# Linker output
-*.ilk
-*.map
-*.exp
+    enum Player { X, O }
 
-# Precompiled Headers
-*.gch
-*.pch
+    enum GameResult { XWins, OWins, Draw }
+ 
+    class Game
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+    {
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+        private Player?[,] board = new Player?[3, 3];
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+        private Player currentPlayer = Player.X;
+ 
+        public event Action<GameResult>? GameEnded;
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+        public event Action<Player>? ReadyForNextPiece;
+ 
+        public void PlacePiece(int row, int col, Player piece)
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+        {
+
+            if (board[row, col] != null)
+
+            {
+
+                throw new InvalidOperationException("Cell is already occupied.");
+
+            }
+ 
+            board[row, col] = piece;
+ 
+            var result = EvaluateGameStatus();
+
+            if (result != null) // Game has ended
+
+            {
+
+                GameEnded?.Invoke(result.Value);
+
+            }
+
+            else
+
+            {
+
+                currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
+
+                ReadyForNextPiece?.Invoke(currentPlayer);
+
+            }
+
+        }
+ 
+        private GameResult? EvaluateGameStatus()
+
+        {
+
+            // Check rows, columns, and diagonals for a winner
+
+            for (int i = 0; i < 3; i++)
+
+            {
+
+                if (board[i, 0] != null && board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2])
+
+                    return board[i, 0] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+                if (board[0, i] != null && board[0, i] == board[1, i] && board[1, i] == board[2, i])
+
+                    return board[0, i] == Player.X ? GameResult.XWins : GameResult.OWins;
+
+            }
+ 
+            if (board[0, 0] != null && board[0, 0] == board[1, 1] && board[1, 1] == board[2, 2])
+
+                return board[0, 0] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+            if (board[0, 2] != null && board[0, 2] == board[1, 1] && board[1, 1] == board[2, 0])
+
+                return board[0, 2] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+            // Check for draw
+
+            foreach (var cell in board)
+
+            {
+
+                if (cell == null)
+
+                    return null; // Game is still ongoing
+
+            }
+ 
+            return GameResult.Draw;
+
+        }
+
+    }
+ 
+    class Program
+
+    {
+
+        static void Main(string[] args)
+
+        {
+
+            Console.WriteLine("Welcome to Tic Tac Toe!");
+
+            // You can add logic here to initialize and play the game
+
+        }
+
+    }
+
+}
+
+ 
+namespace TicTacToe
+
+{
+
+    // Enum to represent the two players in the game
+
+    enum Player { X, O }
+ 
+    // Enum to represent the possible outcomes of the game
+
+    enum GameResult { XWins, OWins, Draw }
+ 
+    class Game
+
+    {
+
+        // 3x3 board to represent the game state, where each cell can hold a Player or be null
+
+        private Player?[,] board = new Player?[3, 3];
+ 
+        // Tracks the current player whose turn it is
+
+        private Player currentPlayer = Player.X;
+ 
+        // Event triggered when the game ends, passing the result (XWins, OWins, or Draw)
+
+        public event Action<GameResult>? GameEnded;
+ 
+        // Event triggered when the game is ready for the next player's move
+
+        public event Action<Player>? ReadyForNextPiece;
+ 
+        // Method to place a piece on the board
+
+        public void PlacePiece(int row, int col, Player piece)
+
+        {
+
+            // Check if the selected cell is already occupied
+
+            if (board[row, col] != null)
+
+            {
+
+                throw new InvalidOperationException("Cell is already occupied.");
+
+            }
+ 
+            // Place the piece on the board
+
+            board[row, col] = piece;
+ 
+            // Evaluate the current game status to check for a winner or a draw
+
+            var result = EvaluateGameStatus();
+
+            if (result != null) // If the game has ended
+
+            {
+
+                // Trigger the GameEnded event with the result
+
+                GameEnded?.Invoke(result.Value);
+
+            }
+
+            else
+
+            {
+
+                // Switch to the other player for the next turn
+
+                currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
+ 
+                // Trigger the ReadyForNextPiece event to notify the next player
+
+                ReadyForNextPiece?.Invoke(currentPlayer);
+
+            }
+
+        }
+ 
+        // Method to evaluate the current status of the game
+
+        private GameResult? EvaluateGameStatus()
+
+        {
+
+            // Check all rows and columns for a winner
+
+            for (int i = 0; i < 3; i++)
+
+            {
+
+                // Check if a row has the same player's pieces
+
+                if (board[i, 0] != null && board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2])
+
+                    return board[i, 0] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+                // Check if a column has the same player's pieces
+
+                if (board[0, i] != null && board[0, i] == board[1, i] && board[1, i] == board[2, i])
+
+                    return board[0, i] == Player.X ? GameResult.XWins : GameResult.OWins;
+
+            }
+ 
+            // Check the two diagonals for a winner
+
+            if (board[0, 0] != null && board[0, 0] == board[1, 1] && board[1, 1] == board[2, 2])
+
+                return board[0, 0] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+            if (board[0, 2] != null && board[0, 2] == board[1, 1] && board[1, 1] == board[2, 0])
+
+                return board[0, 2] == Player.X ? GameResult.XWins : GameResult.OWins;
+ 
+            // Check if there are any empty cells left; if so, the game is still ongoing
+
+            foreach (var cell in board)
+
+            {
+
+                if (cell == null)
+
+                    return null; // Game is still ongoing
+
+            }
+ 
+            // If no winner and no empty cells, the game is a draw
+
+            return GameResult.Draw;
+
+        }
+
+    }
+ 
+    class Program
+
+    {
+
+        // Entry point of the application
+
+        static void Main(string[] args)
+
+        {
+
+            Console.WriteLine("Welcome to Tic Tac Toe!");
+
+            // You can add logic here to initialize and play the game
+
+        }
+
+    }
+
+}
+
+ 

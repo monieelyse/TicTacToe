@@ -37,5 +37,4 @@ If all cells are occupied and **no** win condition is met, the game results in a
 2. Ensure you have .NET installed.
 3. Compile and run the project.
 
-```sh
-dotnet run
+
